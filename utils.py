@@ -11,6 +11,18 @@ def abs_diff(img1, img2):
     b = np.array(img2).astype(np.int32)
     return np.abs(a-b).astype(np.uint8)
 
+def draw_point(img, cord, color=[255,0,0]):
+    cord = np.array(cord)
+    s = np.shape(img)
+    r = s[0]
+    c = s[1]
+    if np.isnan(cord).any():
+        return
+    if cord.dtype != 'int32':
+        cord = np.round(cord)
+    if cord[0] >= r or cord[1] >= c or cord[0] < 0 or cord[1] < 0:
+        return
+    img[cord[0], cord[1]] = color
 
 def draw_rectangle(img, point, r):
     rows, cols, _ = img.shape

@@ -143,12 +143,8 @@ if __name__ == "__main__":
         for bottom in cleaned_bottoms:
             draw_rectangle(bottoms_img, bottom.astype(int), 1)
             irl_cord = cam_model.ground_position(np.array([bottom[1], bottom[0]]))
-            if np.isnan(irl_cord[0]) or np.isnan(irl_cord[1]):
-                continue
             irl_cord_int = np.array([int(irl_cord[0])+50, 100-int(irl_cord[1])])
-            if irl_cord_int[0] < 0 or irl_cord_int[1] < 0 or irl_cord_int[0] >= 100 or irl_cord_int[1] >= 100:
-                continue
-            ground_img[irl_cord_int[1], irl_cord_int[0]] = 255
+            draw_point(ground_img, irl_cord_int)
 
         print(bottom)
         print(irl_cord)
