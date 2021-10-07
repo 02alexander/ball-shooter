@@ -3,6 +3,22 @@
 import numpy as np
 import cv2
 
+def channel_diffs(img):
+    a = np.abs(img[:,:,2].astype(np.uint32)-img[:,:,1].astype(np.uint32))
+    b = np.abs(img[:,:,1].astype(np.uint32)-img[:,:,0].astype(np.uint32))
+    return np.dstack((a,b, np.zeros(a.shape))).astype(np.uint8)
+    #return np.dstack((np.full(a.shape, 255), np.full(a.shape, 128), np.full(a.shape, 0))).astype(np.uint8)
+
+def kmeans(img, k=3):
+    Z = img.reshape((-1, 3))
+    Z = np.float32(Z)
+    critera = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+    ret, label, center = cv2.kmeans(Z, k, None, critera, 10, cv2.KMEANS_RANDOM_CENTERS)
+    center = np.uint8(center)
+    res = center[label.flatten()]
+    res2 = res.reshape((img.shape))
+    return res2
+
 def linregress(x, y):
     pass
 
