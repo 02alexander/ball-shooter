@@ -40,15 +40,12 @@ backup_tvecs = None
 
 while True:
 
-    # Capture frame-by-frame
     ret, frame = cap.read()
 
-
-    # Check if frame is not empty
+    print(ret)
     if not ret:
         continue
 
-    # Convert from BGR to RGB
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     
     aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
@@ -65,6 +62,7 @@ while True:
     
     if len(rvecs) != 4:
         if backup_tvecs is None or backup_rvecs is None:
+            print("Could only find {} fiducials".format(len(rvecs)))
             continue
         rvecs = backup_rvecs
         tvecs = backup_tvecs
@@ -79,7 +77,15 @@ while True:
         #print(ids[i])
         #print(tvec*100)
         #print(rvec)
-        frame = cv2.aruco.drawAxis(frame, cameraMatrix, dist, rvec, tvec, 0.1)
+        frame = cv2.aruco.drawAxis(frame, cameraMatrix, dist, rvec, tvec, 0.05)
+
+    print(type(ids))
+    print(ids)
+    print(np.where(ids == 1)[0][0])
+    print(tvecs)
+    midpoint = (tvecs[np.where(ids == 1)[0][0]] + tvecs[np.where(ids == 2)[0][0]] )*0.5
+    frame = cv2.aruco.drawAxis(frame, cameraMatrix, dist, rvecs[np.where(ids==1)[0][0]], midpoint, 0.05)
+    print(midpoint)
 
     # Display the resulting frame
     cv2.imshow('frame', frame)
@@ -87,7 +93,7 @@ while True:
     if k == 27:
         break
 
-vecs = {'rvec': rvecs, 'tves': tvecs}
+vecs = {'rvec': rvecs, 'tves': tvecs, 'ids': ids}
 pickle.dump(vecs, open('vecs.pickle', 'wb'))
 
 cv2.destroyAllWindows()

@@ -1,0 +1,4 @@
+
+./.vscode
+./camera_calibration/*.pickle
+./camera_calibration/*.png
