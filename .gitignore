@@ -1,4 +1,8 @@
 
-./.vscode
-./camera_calibration/*.pickle
-./camera_calibration/*.png
+./.vscode/
+./shooter/camcal/imgs
+#./shooter/camcal/*.pickle
+env/
+./old
+*.png
+__pycache__/

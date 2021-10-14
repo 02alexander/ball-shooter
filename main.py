@@ -2,13 +2,11 @@
 
 import cv2
 import numpy as np
-from aimer import CameraModel, shoot_angle
 from collections import deque
-from trajectory import outliers
-from utils import *
+from shooter.utils import *
 #from scipy import stats
-from controller import Controller
-from ball_tracker import BallTracker
+from shooter.controller.controller import Controller
+from shooter.balltracker.ball_tracker import BallTracker
 
 
 if __name__ == "__main__":
@@ -21,7 +19,7 @@ if __name__ == "__main__":
     bt = BallTracker(new_size=new_size)
 
     #cam_model = CameraModel(6.5, 16.3, 22, 26, screen_width=new_size[0], screen_height=new_size[1])
-    cam_model = CameraModel(16.5, 10, 23.96, 30.65, screen_width=new_size[0], screen_height=new_size[1])
+    #cam_model = CameraModel(16.5, 10, 23.96, 30.65, screen_width=new_size[0], screen_height=new_size[1])
     bottoms = deque(maxlen=20)
     controller = Controller()
 
@@ -35,9 +33,10 @@ if __name__ == "__main__":
 
         bottom = bt.bottom()
         if bottom is not None:
-            irl_cord = cam_model.ground_position(np.array([bottom[1], bottom[0]]))
+            #irl_cord = cam_model.ground_position(np.array([bottom[1], bottom[0]]))
             bottoms.append(bottom)
-        outliers_indices = outliers(bottoms)
+        
+        """outliers_indices = outliers(bottoms)
         
         outliers_indices.sort()
         
@@ -50,24 +49,15 @@ if __name__ == "__main__":
 
         # how many timesteps there are between the first and the last point in cleaned_bottoms
         time_steps = len(bottoms)-trimmed_end-trimmed_start
+        
 
         cleaned_bottoms = list(bottoms.copy())
         for i in range(len(outliers_indices)):
             cleaned_bottoms.pop(outliers_indices[i]-i)
+        """
 
-        irl_cord = None
-        for bottom in cleaned_bottoms:
-            draw_rectangle(bottoms_img, bottom.astype(int), 1)
-            irl_cord = cam_model.ground_position(np.array([bottom[1], bottom[0]]))
-            if np.isnan(irl_cord[0]) or np.isnan(irl_cord[1]):
-                continue
-            irl_cord_int = np.array([int(irl_cord[0])+50, 100-int(irl_cord[1])])
-            if irl_cord_int[0] < 0 or irl_cord_int[1] < 0 or irl_cord_int[0] >= 100 or irl_cord_int[1] >= 100:
-                continue
-            ground_img[irl_cord_int[1], irl_cord_int[0]] = 255
 
         print(bottom)
-        print(irl_cord)
 
         """
         if len(cleaned_bottoms) > 1:
