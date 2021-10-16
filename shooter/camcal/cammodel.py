@@ -5,7 +5,7 @@ import os
 from ..utils import draw_rectangle
 
 class CamModel:
-    def __init__(self):
+    def __init__(self, calibration_image):
         self.aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
         this_dir = os.path.dirname(__file__) 
         if not os.path.isfile(this_dir+'/camera_parameters.pickle'):
@@ -17,6 +17,8 @@ class CamModel:
             self.dist = params['dist']
             self.tvecs = params['tvecs']
             self.rvecs = params['rvecs']
+
+        self.basx, self.basy, self.origo, self._marker_positions = self.find_plane(calibration_image)
         
     # returns the basis vectors and origo for the plane defined
     # by the fiducial markers.
@@ -50,7 +52,7 @@ class CamModel:
 
     # returns the position point in coordinate system described by origo, basx, basy where basx and basy is a ON-basis
     # point = [x, y]    the pixel coordinates
-    def img_point_to_pos(self, origo, basx, basy, point):
+    def img_point_to_pos(self, point):
         point = list(point)
         point.append(1)
         point = np.array(point)
@@ -59,15 +61,15 @@ class CamModel:
         #vdir = np.array([point[0]-m[0,2], point[1]-m[1,2], 540])
         vdir = np.dot(np.linalg.inv(self.cam_mat), point)
 
-        plane_normal = np.cross(basx, basy)
-        D = np.dot(plane_normal, origo)
+        plane_normal = np.cross(self.basx, self.basy)
+        D = np.dot(plane_normal, self.origo)
         t = D/(np.dot(vdir, plane_normal))
         
         # where vdir intersects the plane
         intersection_point = vdir*t
 
-        x = np.dot(basx, intersection_point-origo[0])
-        y = np.dot(basy, intersection_point-origo[1])
+        x = np.dot(self.basx, intersection_point-self.origo)
+        y = np.dot(self.basy, intersection_point-self.origo)
 
         return np.array([x, y])
 
@@ -88,18 +90,18 @@ def reverse_tvecs(tvecs, rvecs):
 
 def main():
     cap = cv2.VideoCapture(0)    
-    calib = CamModel()
     _, frame = cap.read()
-    basx, basy, origo, marker_positions = calib.find_plane(frame)
-    print(basx)
-    print(basy)
-    print("origo=",origo)
-    print(calib.irl_cord_to_img_point(origo))
-    print(np.dot(basx,basy))
+    calib = CamModel(frame)
+    #basx, basy, origo, marker_positions = calib.find_plane(frame)
+    print(calib.basx)
+    print(calib.basy)
+    print("origo=",calib.origo)
+    print(calib.irl_cord_to_img_point(calib.origo))
+    print(np.dot(calib.basx,calib.basy))
 
     def print_pos(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
-            print(calib.img_point_to_pos(origo, basx, basy, np.array([x,y])))
+            print(calib.img_point_to_pos(np.array([x,y])))
 
     cv2.namedWindow("window", cv2.WINDOW_NORMAL)
     cv2.setMouseCallback("window", print_pos)
@@ -107,12 +109,12 @@ def main():
     while True:
         ret, frame = cap.read()
 
-        for pos in marker_positions:
+        for pos in calib._marker_positions:
             cord = calib.irl_cord_to_img_point(pos)
             draw_rectangle(frame, cord, 5)
-            cord = calib.irl_cord_to_img_point(origo)
+            cord = calib.irl_cord_to_img_point(calib.origo)
             draw_rectangle(frame, cord, 5)
-
+        
         #frame.draw_rectangle()
         cv2.imshow("window", frame)
         k = cv2.waitKey(1)

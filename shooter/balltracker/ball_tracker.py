@@ -6,25 +6,23 @@ from collections import deque
 from .convex_hull import graham_scan
 from ..utils import *
 
-# where pixels is an image where every non-black pixel is highlighted in img and everything else becomes black.
-def highlight_pixels(img, pixels):
-    m = np.average(pixels, axis=2)>0
-    indicator = np.dstack((m, m, m))
-    return np.multiply(img, indicator)
-
-
 class BallTracker:
-    def __init__(self, new_size=(160,120), display_window=None):
+    def __init__(self, cap=None, new_size=(160,120), display_window=None):
         self.new_size = new_size
-        self.cap = cv2.VideoCapture(0)
+        if cap == None:
+            self.cap = cv2.VideoCapture(0)
+        else:
+            self.cap = cap
         self.last_frame = None
         _, reference_img = self.cap.read()
+        self.raw_last_frame = reference_img
         self.reference_img = cv2.blur(cv2.resize(reference_img, new_size), (5,5))
         self.display_window = display_window
 
 
     def detect_circle(self):
         _, frame = self.cap.read()
+        self.raw_last_frame = frame
         frame = cv2.resize(frame, self.new_size)
         self.last_frame = frame
         frame = cv2.blur(frame, (5,5))
@@ -83,16 +81,22 @@ class BallTracker:
 def main():
     bt = BallTracker()
     cv2.namedWindow("window", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("highlighted", cv2.WINDOW_NORMAL)
     while True:
         c = bt.detect_circle()
         img = bt.last_frame
         
+        d = abs_diff(bt.reference_img, cv2.blur(img, (5,5)))
+        d = (255*(d>30)).astype(np.uint8)
+        highlighted = highlight_pixels(img, d)
+
         if c is not None:
             center, _r = c
             cord = np.array([center[1], center[0]])
             print(cord)
             draw_rectangle(img, center, 2)
 
+        cv2.imshow("highlighted", highlighted)
         cv2.imshow("window", img)
         k = cv2.waitKey(1)
         if k == ord('r'):

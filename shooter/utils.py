@@ -98,3 +98,9 @@ def real_center(centers):
             best_center = center
             best_dist = dist_sum
     return best_center
+
+# where pixels is an image where every non-black pixel is highlighted in img and everything else becomes black.
+def highlight_pixels(img, pixels):
+    m = np.average(pixels, axis=2)>0
+    indicator = np.dstack((m, m, m))
+    return np.multiply(img, indicator)
