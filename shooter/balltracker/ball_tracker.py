@@ -6,6 +6,8 @@ from collections import deque
 from .convex_hull import graham_scan
 from ..utils import *
 
+
+
 class BallTracker:
     def __init__(self, cap=None, new_size=(160,120), display_window=None):
         self.new_size = new_size
@@ -28,17 +30,21 @@ class BallTracker:
         frame = cv2.blur(frame, (5,5))
         w, h = self.new_size
 
-        outline = self.outline(frame)
-        if outline is None:
+        od = self.outline(frame)
+        if od is None:
             return None
+        outline, d = od
         circ = circles(outline, 6)
         inframe_circs = []
-
         # adds all valid circles to inframe_circs
         for (center, radius) in circ:
 
             # checks if the center is not nan and also in the image
             if np.isnan(np.sum(center)) or np.isinf(np.sum(center)) or int(center[0]) < 0 or int(center[1]) < 0 or int(center[0]) >= h or int(center[1]) >= w:
+                continue
+            #print("shape(highlighted)=", np.shape(highlighted))
+            #print(highlighted[int(center[0]), int(center[1])], int(center[0]), int(center[1]))
+            if (d[int(center[0]), int(center[1])] == np.array([0,0,0])).all():
                 continue
             inframe_circs.append((center, radius))
         circ = inframe_circs
@@ -60,7 +66,7 @@ class BallTracker:
 
     def outline(self, img):
         d = abs_diff(self.reference_img, img)
-        d = (255*(d>40)).astype(np.uint8)
+        d = (255*(d>60)).astype(np.uint8)
         highlighted = highlight_pixels( cv2.cvtColor(cv2.Canny(img, 100, 200), cv2.COLOR_GRAY2BGR), d)
         edges = np.where(highlighted[:,:,0] == 255)
         
@@ -68,7 +74,7 @@ class BallTracker:
         if len(edges) > 0 and len(edges[0]) > 5:
             outline = graham_scan(edges)
             outline = np.array(outline)
-            return outline
+            return outline, d
         return None
 
     def reset_reference(self, new_image=None):
