@@ -47,7 +47,8 @@ def draw_rectangle(img, point, r):
             draw_point(img, [point[0]+i, point[1]+j])
 
 def mass_center(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if img.ndim == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     rows, cols = img.shape
     x = np.fromfunction(lambda i, j: i, img.shape)
     y = np.fromfunction(lambda i, j: j, img.shape)
@@ -56,6 +57,8 @@ def mass_center(img):
 
     x_avg = np.sum(xr)/np.sum(img)
     y_avg = np.sum(yr)/np.sum(img)
+    if np.isnan(x_avg) or np.isnan(y_avg):
+        return (0,0)
     return (int(x_avg), int(y_avg))
 
 

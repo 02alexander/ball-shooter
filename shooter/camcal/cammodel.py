@@ -4,6 +4,7 @@ import pickle
 import os
 from ..utils import draw_rectangle
 
+
 class CamModel:
     def __init__(self, calibration_image):
         self.aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
@@ -33,6 +34,8 @@ class CamModel:
                                                                   np.array(self.rvecs),
                                                                   np.array(self.tvecs))
 
+        self.aruco_tvecs = tvecs
+        self.aruco_ids = ids
         t = []
         for tvec in tvecs:
             t.append(np.array(tvec).reshape(3,1))

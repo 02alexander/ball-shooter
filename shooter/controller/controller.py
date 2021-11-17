@@ -86,8 +86,7 @@ class Controller:
                 print("FIRE!")
                 self.shoot()
                 self.is_loaded = False
-            
-
+    
 
         if window is not None:
             for pos in self.cammodel._marker_positions:
